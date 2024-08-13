@@ -1,6 +1,6 @@
 # buildkit-prestop-script
 
-A simple [PreStop] script for [BuildKit] pods running in Kubernetes.
+A simple [PreStop] script for [BuildKit] that ensures all ongoing build complete before Kubernetes stops the pod.
 
 ## Why?
 
