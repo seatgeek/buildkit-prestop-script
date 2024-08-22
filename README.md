@@ -17,7 +17,7 @@ We can mitigate this by providing a script that will wait for all ongoing builds
     ```Dockerfile
     FROM moby/buildkit:v0.15.1-rootless
 
-    COPY buildkit-prestop.sh /usr/local/bin/buildkit-prestop.sh
+    ADD --chmod=755 https://raw.githubusercontent.com/seatgeek/buildkit-prestop-script/main/buildkit-prestop.sh /usr/local/bin/buildkit-prestop.sh
     ```
 
 2. Add the following to your BuildKit pod's spec:
