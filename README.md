@@ -1,5 +1,10 @@
 # buildkit-prestop-script
 
+[![Software License](https://img.shields.io/badge/License-Apache--2.0-brightgreen.svg?style=flat-square)](LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/seatgeek/buildkit-prestop-script/tests.yml?branch=main&style=flat-square)](https://github.com/seatgeek/buildkit-prestop-script/actions?query=workflow%3ATests+branch%3Amain)
+[![Latest Release](https://img.shields.io/github/v/release/seatgeek/buildkit-prestop-script?style=flat-square)](https://github.com/seatgeek/buildkit-prestop-script/releases)
+[![Script file size in bytes](https://img.shields.io/github/size/seatgeek/buildkit-prestop-script/buildkit-prestop.sh?style=flat-square)](./buildkit-prestop.sh)
+
 A simple [PreStop] script for [BuildKit] that ensures all ongoing build complete before Kubernetes stops the pod.
 
 ## Why?
