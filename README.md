@@ -34,6 +34,52 @@ We can mitigate this by providing a script that will wait for all ongoing builds
           command: ["/usr/local/bin/buildkit-prestop.sh"]
     ```
 
+#### Alternative usage via configmap
+Instead of extending the buildkit docker image, it's also possible to mount the preStop script inside the pod, via a configmap:
+1. Add this to your BuildKit deployment manifest:
+   ```
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: buildkitd
+      name: buildkitd
+    spec:
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 0
+        spec:
+          terminationGracePeriodSeconds: 1200
+          containers:
+            - name: buildkitd
+              image: moby/buildkit:v0.16.0
+              lifecycle:
+                preStop:
+                  exec:
+                    command: ["/bin/sh", "/usr/local/bin/buildkit-prestop.sh"]
+              volumeMounts:
+                - name: prestop-script-volume
+                  mountPath: /usr/local/bin/buildkit-prestop.sh
+                  subPath: buildkit-prestop.sh
+          volumes:
+          - name: prestop-script-volume
+            configMap:
+              name: buildkit-prestop-script
+              defaultMode: 0777  # Ensure the script is executable
+   ```
+2. Create the configmap with the script in this repo:
+   ```
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: buildkit-prestop-script
+   data:
+     buildkit-prestop.sh: |
+        #!/bin/bash
+        ...
+   ```
+
 ## How it works
 
 BuildKit does not provide any built-in API for querying the count and status of ongoing builds, forcing us to rely on
