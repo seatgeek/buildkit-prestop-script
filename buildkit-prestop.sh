@@ -42,8 +42,12 @@ times=0
 
 # Print logs both locally as in pod logs
 print_logs() {
-    echo $1
-    echo "PreStop Hook: $1" >> /proc/1/fd/1
+    # If we're running in a Kubernetes pod, write logs to stdout of the container
+    if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
+        echo "PreStop Hook: $1" >> /proc/1/fd/1
+    else
+        echo "$1"
+    fi
 }
 
 # Function to print a message conditionally based on DEBUG environment variable
