@@ -39,11 +39,13 @@ REQUIRED_CHECK_COUNT=$((WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS * 1000 / CHECK_F
 
 # Print logs both locally as in pod logs
 print_logs() {
-    # If we're running in a Kubernetes pod, write logs to stdout of the container
+    message=$1
+
+    # If we're running in a Kubernetes pod, write logs to stderr of the container
     if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
-        echo "PreStop Hook: $1" >> /proc/1/fd/1
+        echo "$message" >> /proc/1/fd/2
     else
-        echo "$1"
+        echo "$message" >&2
     fi
 }
 
