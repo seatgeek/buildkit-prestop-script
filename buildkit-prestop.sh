@@ -40,14 +40,24 @@ REQUIRED_CHECK_COUNT=$((WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS * 1000 / CHECK_F
 # How many consecutive times we've seen no running builds
 times=0
 
-# Function to print a message conditionally based on DEBUG environment variable
-print_debug() {
-    if [ -n "$DEBUG" ]; then
+# Print logs both locally as in pod logs
+print_logs() {
+    # If we're running in a Kubernetes pod, write logs to stdout of the container
+    if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
+        echo "PreStop Hook: $1" >> /proc/1/fd/1
+    else
         echo "$1"
     fi
 }
 
-echo "Waiting for build processes to finish..."
+# Function to print a message conditionally based on DEBUG environment variable
+print_debug() {
+    if [ -n "$DEBUG" ]; then
+        print_logs "$1"
+    fi
+}
+
+print_logs "Waiting for build processes to finish..."
 
 # Loop until we see zero active connections REQUIRED_CHECK_COUNT consecutive times
 while true; do
@@ -64,4 +74,4 @@ while true; do
     usleep $CHECK_FREQUENCY_MS"000"  # Sleep for CHECK_FREQUENCY_MS milliseconds before checking again
 done
 
-echo "All build processes seem to have stopped. Exiting now."
+print_logs "All build processes seem to have stopped. Exiting now."

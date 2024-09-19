@@ -17,6 +17,8 @@ We can mitigate this by providing a script that will wait for all ongoing builds
 
 ## Usage
 
+### Option 1: Bake the script into your BuildKit image
+
 1. Add [the `buildkit-prestop.sh` script](./buildkit-prestop.sh) to your BuildKit pod's container image. For example:
 
     ```Dockerfile
@@ -33,6 +35,66 @@ We can mitigate this by providing a script that will wait for all ongoing builds
         exec:
           command: ["/usr/local/bin/buildkit-prestop.sh"]
     ```
+
+### Option 2: Mount the script with a ConfigMap
+
+Instead of extending the buildkit docker image, it's also possible to mount the preStop script inside the pod via  a `ConfigMap`:
+
+1. Download [the `buildkit-prestop.sh` script](./buildkit-prestop.sh) to your local machine.
+
+2. Create a `ConfigMap` from that file:
+
+   ```bash
+   kubectl create configmap buildkit-prestop-script --from-file=buildkit-prestop.sh
+   ```
+
+   Which should create a `ConfigMap` named `buildkit-prestop-script`:
+
+   ```
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: buildkit-prestop-script
+   data:
+     buildkit-prestop.sh: |
+        #!/bin/bash
+        ...
+   ```
+
+3. Update your BuildKit `Deployment` manifest to mount the `ConfigMap` as a volume and reference the script:
+
+   ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: buildkitd
+      name: buildkitd
+    spec:
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 0
+      template:
+        spec:
+          terminationGracePeriodSeconds: 1200
+          containers:
+            - name: buildkitd
+              image: moby/buildkit:v0.16.0
+              lifecycle:
+                preStop:
+                  exec:
+                    command: ["/bin/sh", "/usr/local/bin/buildkit-prestop.sh"]
+              volumeMounts:
+                - name: prestop-script-volume
+                  mountPath: /usr/local/bin/buildkit-prestop.sh
+                  subPath: buildkit-prestop.sh
+          volumes:
+          - name: prestop-script-volume
+            configMap:
+              name: buildkit-prestop-script
+              defaultMode: 0777  # Ensure the script is executable
+   ```
 
 ## How it works
 
