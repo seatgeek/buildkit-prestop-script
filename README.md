@@ -17,6 +17,8 @@ We can mitigate this by providing a script that will wait for all ongoing builds
 
 ## Usage
 
+### Option 1: Bake the script into your BuildKit image
+
 1. Add [the `buildkit-prestop.sh` script](./buildkit-prestop.sh) to your BuildKit pod's container image. For example:
 
     ```Dockerfile
@@ -34,10 +36,34 @@ We can mitigate this by providing a script that will wait for all ongoing builds
           command: ["/usr/local/bin/buildkit-prestop.sh"]
     ```
 
-#### Alternative usage via configmap
-Instead of extending the buildkit docker image, it's also possible to mount the preStop script inside the pod, via a configmap:
-1. Add this to your BuildKit deployment manifest:
+### Option 2: Mount the script with a ConfigMap
+
+Instead of extending the buildkit docker image, it's also possible to mount the preStop script inside the pod via  a `ConfigMap`:
+
+1. Download [the `buildkit-prestop.sh` script](./buildkit-prestop.sh) to your local machine.
+
+2. Create a `ConfigMap` from that file:
+
+   ```bash
+   kubectl create configmap buildkit-prestop-script --from-file=buildkit-prestop.sh
    ```
+
+   Which should create a `ConfigMap` named `buildkit-prestop-script`:
+
+   ```
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: buildkit-prestop-script
+   data:
+     buildkit-prestop.sh: |
+        #!/bin/bash
+        ...
+   ```
+
+3. Update your BuildKit `Deployment` manifest to mount the `ConfigMap` as a volume and reference the script:
+
+   ```yaml
     apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -68,17 +94,6 @@ Instead of extending the buildkit docker image, it's also possible to mount the 
             configMap:
               name: buildkit-prestop-script
               defaultMode: 0777  # Ensure the script is executable
-   ```
-2. Create the configmap with the script in this repo:
-   ```
-   apiVersion: v1
-   kind: ConfigMap
-   metadata:
-     name: buildkit-prestop-script
-   data:
-     buildkit-prestop.sh: |
-        #!/bin/bash
-        ...
    ```
 
 ## How it works
