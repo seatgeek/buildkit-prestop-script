@@ -19,3 +19,18 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           severity: style
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run script in BusyBox
+        run: |
+          docker run --rm \
+            -e DEBUG=1 \
+            -v "${{ github.workspace }}":/workspace \
+            -w /workspace \
+            busybox \
+            ./buildkit-prestop.sh
+        timeout-minutes: 5
