@@ -49,6 +49,7 @@ Instead of extending the buildkit docker image, it's also possible to mount the 
         type: RollingUpdate
         rollingUpdate:
           maxUnavailable: 0
+      template:
         spec:
           terminationGracePeriodSeconds: 1200
           containers:
