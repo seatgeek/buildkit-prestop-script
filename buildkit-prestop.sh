@@ -37,9 +37,6 @@ BUILDKITD_PORT=1234                         # Port on which buildkitd is listeni
 # Calculate the number of checks required based on the wait time and sleep period
 REQUIRED_CHECK_COUNT=$((WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS * 1000 / CHECK_FREQUENCY_MS))
 
-# How many consecutive times we've seen no running builds
-times=0
-
 # Print logs both locally as in pod logs
 print_logs() {
     # If we're running in a Kubernetes pod, write logs to stdout of the container
@@ -58,6 +55,9 @@ print_debug() {
 }
 
 print_logs "Waiting for build processes to finish..."
+
+# How many consecutive times we've seen no running builds
+times=0
 
 # Loop until we see zero active connections REQUIRED_CHECK_COUNT consecutive times
 while true; do
