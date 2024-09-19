@@ -29,10 +29,12 @@
 # Because this is a somewhat naive approach that only looks at individual points in time,
 # we will check multiple times just to be sure that we're not missing any builds.
 
-# Variables
+# Variables (change these as needed)
 CHECK_FREQUENCY_MS=500                      # How often we should for running build processes (in milliseconds)
 WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS=10  # If no build processes are seen for this many seconds, we assume that all builds have stopped
 BUILDKITD_PORT=1234                         # Port on which buildkitd is listening for buildx clients
+LOG_FORMAT="json"                           # Log format to use (either "json" or "text")
+LOG_PREFIX="[PreStop Hook]"                 # Optional prefix to add to log messages
 
 # Calculate the number of checks required based on the wait time and sleep period
 REQUIRED_CHECK_COUNT=$((WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS * 1000 / CHECK_FREQUENCY_MS))
@@ -40,6 +42,15 @@ REQUIRED_CHECK_COUNT=$((WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS * 1000 / CHECK_F
 # Print logs both locally as in pod logs
 print_logs() {
     message=$1
+    level=${2:-"info"}
+
+    if [ -n "$LOG_PREFIX" ]; then
+        message="$LOG_PREFIX $message"
+    fi
+
+    if [ "$LOG_FORMAT" = "json" ]; then
+        message="{\"message\": \"$message\", \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\", \"level\": \"$level\"}"
+    fi
 
     # If we're running in a Kubernetes pod, write logs to stderr of the container
     if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
@@ -52,7 +63,7 @@ print_logs() {
 # Function to print a message conditionally based on DEBUG environment variable
 print_debug() {
     if [ -n "$DEBUG" ]; then
-        print_logs "$1"
+        print_logs "$1" "debug"
     fi
 }
 
