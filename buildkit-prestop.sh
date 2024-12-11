@@ -35,6 +35,7 @@ WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS=10  # If no build processes are seen for
 BUILDKITD_PORT=1234                         # Port on which buildkitd is listening for buildx clients
 LOG_FORMAT="json"                           # Log format to use (either "json" or "text")
 LOG_PREFIX="[PreStop Hook]"                 # Optional prefix to add to log messages
+DEBUG=1                                     # Enables debug logging
 
 # Calculate the number of checks required based on the wait time and sleep period
 REQUIRED_CHECK_COUNT=$((WAIT_UNTIL_NO_BUILDS_SEEN_FOR_X_SECONDS * 1000 / CHECK_FREQUENCY_MS))
